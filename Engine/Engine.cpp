@@ -11,7 +11,13 @@
 Engine::Engine() {
     initWindow();
     initOpenGL();
-    ui.init(m_window.handle , std::to_string(GLSL_VERSION));
+    m_renderer.initFrameBuffer(m_window.width, m_window.height);
+    m_ui.init(m_window.handle , std::to_string(GLSL_VERSION));
+    m_scene.init();
+    Shader simpleShader("shaders/simple.vert", "shaders/simple.frag");
+    simpleShader.init();
+    m_renderer.initShaders(simpleShader.getProgramId());
+    m_renderer.add_toQueue(m_scene.renderables[0]);
 }
 
 Engine::~Engine() {
@@ -20,17 +26,24 @@ Engine::~Engine() {
 
 void Engine::run() {
     while(!glfwWindowShouldClose(m_window.handle)) {
-        glfwPollEvents();
         processInput(m_window.handle, ImGui::GetIO().DeltaTime);
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        ui.beginRender();
-        m_renderer.render();
-        ui.render();
+        m_scene.renderInfo.viewMatrix = m_camera.getViewMatrix();
+        m_scene.renderInfo.projectionMatrix = m_camera.getProjectionMatrix();
 
+        m_camera.updateProjectionMatrix(m_window.width, m_window.height);
+        m_camera.updateViewMatrix();
+
+        m_renderer.setRenderInfo(m_scene.renderInfo);
+        
+        m_renderer.render();
+        m_ui.beginRender();
+        renderMainBuffer();
+        m_ui.render();
+        m_ui.endRender();
+        
         glfwSwapBuffers(m_window.handle);
+        glfwPollEvents();
     }
 }
 
@@ -54,8 +67,18 @@ void Engine::initOpenGL() {
     glfwSetFramebufferSizeCallback(m_window.handle, Engine::framebuffer_size_callback);
 }
 
+void Engine::renderMainBuffer() {
+    ImGui::Begin("Scene");
+    ImVec2 avail = ImGui::GetContentRegionAvail();
+    ImGui::Image((ImTextureID)(intptr_t)m_renderer.getMainFrameColor(), avail, ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::End();
+}
+
 void Engine::processInput(GLFWwindow* window, float deltaTime) {
-    m_cameraController.processMouseInput(window, deltaTime);
+    if (glfwGetTime() - m_inputTime > 0.016) {
+        m_inputTime = glfwGetTime();
+        m_cameraController.processMouseInput(window, deltaTime);
+    }
     m_cameraController.processKeyboardInput(window, deltaTime);
 }
 

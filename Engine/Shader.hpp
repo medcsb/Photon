@@ -18,6 +18,8 @@ public:
     void init();
     void use();
 
+    GLuint getProgramId() const { return m_id; }
+
 private:
     void createProg();
     void compileShader(GLuint& id, GLuint type, const std::string& code);

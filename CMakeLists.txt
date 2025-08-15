@@ -46,10 +46,15 @@ file(GLOB RENDERER_SRC
     Renderer/*.cpp
 )
 
+file(GLOB RENDER_SYSTEMS_SRC
+    Renderer/systems/*.cpp
+)
+
 add_executable(${PROJECT_NAME}
     ./main.cpp
     ${RENDERER_SRC}
     ${ENGINE_SRC}
+    ${RENDER_SYSTEMS_SRC}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -75,5 +80,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     extern/single_header_libs
     Engine/include
     Renderer/include
+    Renderer/
     include/
 )

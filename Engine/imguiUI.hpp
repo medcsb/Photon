@@ -12,7 +12,18 @@ class ImguiUI {
 private:
     GLFWwindow* m_window;
     ImGuiViewport* m_viewport;
-    ImGuiIO m_io;
+    ImGuiIO* m_io;
+
+    ImGuiDockNodeFlags m_dockspaceFlags;
+    ImGuiWindowFlags m_windowFlags;
+
+    uint32_t m_versionMajor;
+    uint32_t m_versionMinor;
+
+    double last_updated_time = 0;
+    double current_time = 0;
+    float fps = 0.0f;
+
 public:
     ImguiUI();
     ~ImguiUI();
@@ -21,8 +32,11 @@ public:
 
     void beginRender();
     void render();
+    void endRender();
 
 private:
+    void beginDockSpace();
+
     void renderPanels();
 
     void infoBoard();
