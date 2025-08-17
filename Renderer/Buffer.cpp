@@ -6,6 +6,7 @@ MeshBuffer Buffer::createMeshBuffer(const VAOConfig& config, const void* vertex_
     mesh.vao = 0;
     mesh.index_count = config.index_count;
     mesh.draw_mode = config.draw_mode;
+    mesh.vertex_count = config.num_vertices;
     glGenVertexArrays(1, &mesh.vao);
     glGenBuffers(1, &mesh.vbo);
     if (config.index_count != UINT32_MAX) glGenBuffers(1, &mesh.ebo);

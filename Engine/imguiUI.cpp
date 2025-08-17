@@ -1,5 +1,7 @@
 #include "imguiUI.hpp"
 
+#include <algorithm>
+
 ImguiUI::ImguiUI() {}
 
 ImguiUI::~ImguiUI() {}
@@ -45,8 +47,10 @@ void ImguiUI::beginRender() {
     beginDockSpace();
 }
 
-void ImguiUI::render() {
-    renderPanels();
+void ImguiUI::render(UI_Struct& ui_struct) {
+    renderScenePanel((ImTextureID)(intptr_t)ui_struct.main_fbo_tex, ui_struct.mainFboSize);
+    renderInfoPanel(ui_struct);
+    renderEditPanel(ui_struct);
     ImGui::Render();
 }
 
@@ -63,27 +67,78 @@ void ImguiUI::endRender() {
 
 }
 
-void ImguiUI::renderPanels() {
-    infoBoard();
+void ImguiUI::renderScenePanel(ImTextureID sceneTexture, FboSize* mainFboSize) {
+    ImGui::Begin("Scene");
+    ImVec2 avail = ImGui::GetContentRegionAvail();
+    if (m_prevAvail.x != avail.x || m_prevAvail.y != avail.y) {
+        m_prevAvail = avail;
+        mainFboSize->resized = true;
+        mainFboSize->width = static_cast<uint32_t>(std::max(avail.x, 1.0f));
+        mainFboSize->height = static_cast<uint32_t>(std::max(avail.y, 1.0f));
+    }
+    ImGui::Image(sceneTexture, avail, ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::End();
 }
 
-void ImguiUI::infoBoard() {
+void ImguiUI::renderInfoPanel(UI_Struct& ui_struct) {
 
+    ImGui::Begin("Info");
+    info();
+    settings();
+    sceneSettings(ui_struct.objNames);
+    ImGui::End();
+}
+
+void ImguiUI::renderEditPanel(UI_Struct& ui_struct) {
+    ImGui::Begin("Edit");
+    if (m_selectedObjIdx == UINT32_MAX) {
+        ImGui::Text("No object selected.");
+        ImGui::End();
+        return;
+    }
+    ImGui::SliderFloat3("Pos", &ui_struct.renderables->at(m_selectedObjIdx).transform[3][0], -5.0f, 5.0f);
+    if (ImGui::CollapsingHeader("Material")) {
+        ImGui::ColorPicker3("Color", &ui_struct.renderables->at(m_selectedObjIdx).material.baseColor[0]);
+        ImGui::SliderFloat("Ambient", &ui_struct.renderables->at(m_selectedObjIdx).material.ambient, 0.0f, 1.0f);
+        ImGui::SliderFloat("Diffuse", &ui_struct.renderables->at(m_selectedObjIdx).material.diffuse, 0.0f, 1.0f);
+        ImGui::SliderFloat("Specular", &ui_struct.renderables->at(m_selectedObjIdx).material.specular, 0.0f, 1.0f);
+        ImGui::SliderFloat("Specular Strength", &ui_struct.renderables->at(m_selectedObjIdx).material.specStrength, 0.0f, 1.0f);
+        ImGui::SliderFloat("Specular Power", &ui_struct.renderables->at(m_selectedObjIdx).material.specPower, 1.0f, 128.0f);
+    }
+    ImGui::End();
+}
+
+void ImguiUI::info() {
     current_time = glfwGetTime();
     if (current_time - last_updated_time >= 1.0) {
         fps = ImGui::GetIO().Framerate;
         last_updated_time = current_time;
     }
 
-    ImGui::Begin("Stats");
-    // print the used graphics API
-    ImGui::Text("Graphics API: OpenGL %d.%d", m_versionMajor, m_versionMinor);
-    ImGui::Text("Renderer: %s", glGetString(GL_RENDERER));
-    ImGui::Text("Vendor: %s", glGetString(GL_VENDOR));
-    ImGui::Text("Version: %s", glGetString(GL_VERSION));
-    
-    ImGui::Text("FPS : %.1f", fps);
-    ImGui::End();
+    if (ImGui::CollapsingHeader("Info Panel")) {
+        ImGui::TextWrapped("Graphics API: OpenGL %d.%d \n\n", m_versionMajor, m_versionMinor);
+        ImGui::TextWrapped("Renderer: %s\n\n", glGetString(GL_RENDERER));
+        ImGui::TextWrapped("Vendor: %s\n\n", glGetString(GL_VENDOR));
+        ImGui::TextWrapped("Version: %s\n\n", glGetString(GL_VERSION));
+        ImGui::TextWrapped("FPS : %.1f\n\n", fps);
+    }
+}
+
+void ImguiUI::settings() {
+    if (ImGui::CollapsingHeader("Settings")) {
+        ImGui::Text("Settings will be implemented in the future.");
+        // Add settings options here
+    }
+}
+
+void ImguiUI::sceneSettings(std::vector<std::string>* objNames) {
+    if (ImGui::CollapsingHeader("Scene Settings")) {
+        if (ImGui::CollapsingHeader("Objects")) {
+            for (size_t i = 0; i < objNames->size(); ++i) {
+                if (ImGui::Button(objNames->at(i).c_str())) m_selectedObjIdx = i;
+            }
+        }
+    }
 }
 
 void ImguiUI::beginDockSpace() {

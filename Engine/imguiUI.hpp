@@ -1,12 +1,27 @@
 #pragma once
 
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include "GLFW/glfw3.h"
+#include "Photon/Renderer.h"
 
 #include <string>
+
+struct FboSize {
+    uint32_t width;
+    uint32_t height;
+    bool resized = false;
+};
+
+struct UI_Struct {
+    FboSize* mainFboSize;
+    ImTextureID* main_fbo_tex;
+    std::vector<std::string>* objNames;
+    std::vector<SimpleRenderable>* renderables;
+    //Scene scene;
+};
 
 class ImguiUI {
 private:
@@ -20,6 +35,11 @@ private:
     uint32_t m_versionMajor;
     uint32_t m_versionMinor;
 
+    bool m_onStartup = true;
+    ImVec2 m_prevAvail;
+
+    size_t m_selectedObjIdx = UINT32_MAX;
+
     double last_updated_time = 0;
     double current_time = 0;
     float fps = 0.0f;
@@ -31,13 +51,16 @@ public:
     void init(GLFWwindow* window , const std::string& glsl_version);
 
     void beginRender();
-    void render();
+    void render(UI_Struct& ui_struct);
     void endRender();
 
 private:
     void beginDockSpace();
 
-    void renderPanels();
-
-    void infoBoard();
+    void renderScenePanel(ImTextureID sceneTexture, FboSize* mainFboSize);
+    void renderInfoPanel(UI_Struct& ui_struct);
+    void renderEditPanel(UI_Struct& ui_struct);
+    void info();
+    void settings();
+    void sceneSettings(std::vector<std::string>* objNames);
 };

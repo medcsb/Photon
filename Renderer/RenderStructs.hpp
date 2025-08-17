@@ -4,20 +4,17 @@
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 
-struct Light;
-struct RenderInfo;
-struct SimpleMaterial;
-struct SimpleRenderable;
-struct FrameBuffer;
-struct MeshBuffer;
-struct VAOConfig;
-struct AttribInfo;
+enum class RenderType : uint8_t {
+    Simple = 0,
+    PBR = 1
+};
 
 struct MeshBuffer {
     GLuint vao = 0;
     GLuint vbo = 0;
     GLuint ebo = 0;
     size_t index_count = UINT32_MAX;
+    size_t vertex_count = 0;
     GLenum draw_mode = GL_TRIANGLES;
 
     // might need to disable copying
@@ -28,8 +25,8 @@ struct MeshBuffer {
     void unbind() const {glBindVertexArray(0);}
 
     void draw() const {
-        if (index_count == UINT32_MAX) glDrawArrays(draw_mode, 0, 3);
-        else glDrawElements(draw_mode, index_count, GL_UNSIGNED_INT, nullptr);
+        if (index_count == UINT32_MAX) glDrawArrays(draw_mode, 0, vertex_count);
+        else glDrawElements(draw_mode, index_count, GL_UNSIGNED_INT, 0);
     }
 
     void cleanup() {
@@ -78,8 +75,6 @@ struct FrameBuffer {
     GLuint fbo;
     GLuint colorBuffer;
     GLuint depthBuffer;
-    uint32_t width;
-    uint32_t height;
 };
 
 struct AttribInfo {

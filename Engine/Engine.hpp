@@ -16,10 +16,6 @@ const int OPENGL_VERSION_MAJOR = 4;
 const int OPENGL_VERSION_MINOR = 5;
 const int GLSL_VERSION = OPENGL_VERSION_MAJOR * 100 + OPENGL_VERSION_MINOR * 10;
 
-struct UI_Render_Info {
-    GLuint main_texture;
-};
-
 class Engine {
 private:
     struct Window {
@@ -28,9 +24,13 @@ private:
         int height = 600;
     } m_window;
 
+    FboSize m_mainFboSize{800, 600, false};
+
     Renderer m_renderer{};
     ImguiUI m_ui{};
     Scene m_scene{};
+
+    UI_Struct m_uiStruct{};
 
     Camera m_camera;
     CameraController m_cameraController{m_camera};
@@ -43,11 +43,16 @@ public:
 
     void run();
 
+    void resetWindowSize(uint32_t width, uint32_t height) {
+        m_window.width = width;
+        m_window.height = height;
+    }
+
 private:
     void initWindow();
     void initOpenGL();
 
-    void renderMainBuffer();
+    void fillUIStruct();
 
     void processInput(GLFWwindow* window, float deltaTime);
 

@@ -2,34 +2,41 @@
 
 #include "Photon/Renderer.h"
 #include "Shader.hpp"
+#include "Model.hpp"
 
-struct Vertex {
-    glm::vec3 pos;
-    glm::vec3 normal;
+struct Obj {
+    RenderType type;
+    uint32_t idx;
 };
 
 class Scene {
-public:
-    std::vector<MeshBuffer> meshBuffers;
-    std::vector<SimpleMaterial> materials;
-    std::vector<SimpleRenderable> renderables;
-    Light mainLight;
-    glm::mat4 triTransform;
-    RenderInfo renderInfo;
+private:
+
+    uint32_t m_objCount = 0;
+
+    std::vector<SimpleRenderable> m_renderables;
+    std::vector<Obj> m_objects;
+    std::vector<Model> m_models;
+    std::vector<std::string> m_objNames;
+    std::vector<Light> m_lights;
+    RenderInfo m_renderInfo;
     
 public:
     Scene();
     ~Scene();
 
-    void init();
-    VAOConfig createConfig();
+    void setViewMatrix(const glm::mat4& view) { m_renderInfo.viewMatrix = view; }
+    void setProjectionMatrix(const glm::mat4& projection) { m_renderInfo.projectionMatrix = projection; }
 
-    std::vector<Vertex> createTestTriangle() {
-        return {
-            {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-            {{ 0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-            {{ 0.0f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
-        };
-    }
+    RenderInfo& getRenderInfo() { return m_renderInfo; }
+    std::vector<std::string>* getObjNames() { return &m_objNames; }
+    std::vector<SimpleRenderable>* getRenderables() { return &m_renderables; }
+
+    void AddCubeObj();
+
+    void initExample();
+
+private:
+    VAOConfig createConfig(size_t idx);
 };
 

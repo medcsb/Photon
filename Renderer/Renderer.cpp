@@ -11,23 +11,28 @@ void Renderer::initFrameBuffer(uint32_t width, uint32_t height) {
     m_mainFrame = createFrameBuffer(width, height);
 }
 
-void Renderer::render() {
+void Renderer::renderToFbo(uint32_t width, uint32_t height) {
     glBindFramebuffer(GL_FRAMEBUFFER, m_mainFrame.fbo);
-    glViewport(0, 0, m_mainFrame.width, m_mainFrame.height);
+    glViewport(0, 0, width, height);
+    render();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
-    // rendering code
+void Renderer::renderToScreen(uint32_t width, uint32_t height) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, width, height);
+    render();
+}
+
+void Renderer::render() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_simpleRenderSystem.render(m_renderInfo);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 FrameBuffer Renderer::createFrameBuffer(uint32_t width, uint32_t height) {
     FrameBuffer fb;
-    fb.width = width;
-    fb.height = height;
     glGenFramebuffers(1, &fb.fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo);
 

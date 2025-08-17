@@ -29,23 +29,24 @@ public:
     Renderer();
     ~Renderer();
 
-    void add_toQueue(const SimpleRenderable& renderable) {
-        m_simpleRenderSystem.add_toQueue(renderable);
+    void setSimpleRenderables(std::vector<SimpleRenderable>* renderables) {
+        m_simpleRenderSystem.setRenderables(renderables);
     }
 
     void initFrameBuffer(uint32_t width, uint32_t height);
-    void initShaders(GLuint shaderProg) {
-        m_simpleRenderSystem.init(shaderProg);
-    }
+    void initShaders(GLuint shaderProg) { m_simpleRenderSystem.init(shaderProg); }
 
     GLuint getMainFrameColor() const { return m_mainFrame.colorBuffer; }
     
-    void render();
+    void renderToFbo(uint32_t width, uint32_t height);
+    void renderToScreen(uint32_t width, uint32_t height);
     void setRenderInfo(const RenderInfo& renderInfo) { m_renderInfo = renderInfo; }
 
     void initTestTriangle();
     
 private:
+    void render();
+
     FrameBuffer createFrameBuffer(uint32_t width, uint32_t height);
 
 };
