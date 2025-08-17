@@ -34,6 +34,8 @@ void Engine::run() {
         processInput(m_window.handle, ImGui::GetIO().DeltaTime);
         if (m_mainFboSize.resized) {
             m_renderer.initFrameBuffer(m_mainFboSize.width, m_mainFboSize.height);
+            m_uiStruct.main_fbo_tex = (ImTextureID*)(intptr_t)m_renderer.getMainFrameColor();
+            m_uiStruct.mainFboSize = &m_mainFboSize;
             m_mainFboSize.resized = false;
         }
 
@@ -83,7 +85,7 @@ void Engine::initOpenGL() {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         throw std::runtime_error("Failed to load opengl functions");
     }
-    //glViewport(0, 0, m_window.width, m_window.height);
+    glViewport(0, 0, m_window.width, m_window.height);
 }
 
 void Engine::fillUIStruct() {
