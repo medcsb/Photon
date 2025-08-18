@@ -6,6 +6,12 @@
 
 #include <string>
 
+#define HAS_ALBEDO_TEX     0x01 // bit 1
+#define HAS_NORMAL_TEX     0x02 // bit 2
+#define HAS_METALLIC_TEX   0x04 // bit 3
+#define HAS_ROUGHNESS_TEX  0x08 // bit 4
+#define HAS_AO_TEX         0x10 // bit 5
+
 enum class TexUsage : uint8_t {
     ALBEDO,
     NORMAL,

@@ -107,23 +107,23 @@ void ImguiUI::renderEditPanel(UI_Struct& ui_struct) {
         ImGui::End();
         return;
     }
-    if(ImGui::SliderFloat3("Pos", glm::value_ptr(ui_struct.renderables->at(m_selectedObjIdx).transform.pos), -5.0f, 5.0f)) {
-        ui_struct.renderables->at(m_selectedObjIdx).transform.calcMatrix();
+    if(ImGui::SliderFloat3("Pos", glm::value_ptr(ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.pos), -5.0f, 5.0f)) {
+        ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.calcMatrix();
     }
-    if(ImGui::SliderFloat3("Rot", glm::value_ptr(ui_struct.renderables->at(m_selectedObjIdx).transform.rot), -180.0f, 180.0f)) {
-        ui_struct.renderables->at(m_selectedObjIdx).transform.calcMatrix();
+    if(ImGui::SliderFloat3("Rot", glm::value_ptr(ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.rot), -180.0f, 180.0f)) {
+        ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.calcMatrix();
     }
-    if(ImGui::SliderFloat3("Scale", glm::value_ptr(ui_struct.renderables->at(m_selectedObjIdx).transform.scale), 0.1f, 5.0f)) {
-        ui_struct.renderables->at(m_selectedObjIdx).transform.calcMatrix();
+    if(ImGui::SliderFloat3("Scale", glm::value_ptr(ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.scale), 0.1f, 5.0f)) {
+        ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.calcMatrix();
     }
     if (ImGui::CollapsingHeader("Material")) {
-        ImGui::ColorPicker4("Color", &ui_struct.renderables->at(m_selectedObjIdx).material.ubo.baseColor[0]);
-        ImGui::SliderFloat("Ambient", &ui_struct.renderables->at(m_selectedObjIdx).material.ubo.ambient, 0.0f, 1.0f);
-        ImGui::SliderFloat("Diffuse", &ui_struct.renderables->at(m_selectedObjIdx).material.ubo.diffuse, 0.0f, 1.0f);
-        ImGui::SliderFloat("Specular", &ui_struct.renderables->at(m_selectedObjIdx).material.ubo.specular, 0.0f, 1.0f);
-        ImGui::SliderFloat("Specular Strength", &ui_struct.renderables->at(m_selectedObjIdx).material.ubo.specStrength, 0.0f, 1.0f);
-        ImGui::SliderFloat("Specular Power", &ui_struct.renderables->at(m_selectedObjIdx).material.ubo.specPower, 1.0f, 128.0f);
-        ImGui::SliderFloat("Texture Blend", &ui_struct.renderables->at(m_selectedObjIdx).material.ubo.texBlend, 0.0f, 1.0f);
+        ImGui::ColorPicker4("Color", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.baseColor[0]);
+        ImGui::SliderFloat("Ambient", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.ambient, 0.0f, 1.0f);
+        ImGui::SliderFloat("Diffuse", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.diffuse, 0.0f, 1.0f);
+        ImGui::SliderFloat("Specular", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.specular, 0.0f, 1.0f);
+        ImGui::SliderFloat("Specular Strength", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.specStrength, 0.0f, 1.0f);
+        ImGui::SliderFloat("Specular Power", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.specPower, 1.0f, 128.0f);
+        ImGui::SliderFloat("Texture Blend", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.texBlend, 0.0f, 1.0f);
     }
     ImGui::End();
 }

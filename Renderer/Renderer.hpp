@@ -22,7 +22,7 @@ private:
     RenderInfo m_renderInfo;
 
     Simple_RS m_simpleRenderSystem;
-    //PBR_RS m_pbrRenderSystem;
+    PBR_RS m_pbrRenderSystem;
 
 public:
     Renderer();
@@ -34,8 +34,13 @@ public:
         m_simpleRenderSystem.setRenderables(renderables);
     }
 
+    void setPBRRenderables(std::vector<PBR_Renderable>* renderables) {
+        m_pbrRenderSystem.setRenderables(renderables);
+    }
+
     void initFrameBuffer(uint32_t width, uint32_t height);
-    void initShaders(GLuint shaderProg) { m_simpleRenderSystem.init(shaderProg); }
+    void initSimpleShaders(GLuint shaderProg) { m_simpleRenderSystem.init(shaderProg); }
+    void initPBRShaders(GLuint shaderProg) { m_pbrRenderSystem.init(shaderProg); }
 
     GLuint getMainFrameColor() const { return m_mainFrame.colorBuffer; }
     

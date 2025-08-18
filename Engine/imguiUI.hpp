@@ -20,7 +20,8 @@ struct UI_Struct {
     FboSize* mainFboSize;
     ImTextureID* main_fbo_tex;
     std::vector<std::string>* objNames;
-    std::vector<SimpleRenderable>* renderables;
+    std::vector<SimpleRenderable>* simpleRenderables;
+    std::vector<PBR_Renderable>* pbrRenderables;
     std::vector<Shader>* shaders;
     std::vector<Light>* lights;
     //Scene scene;

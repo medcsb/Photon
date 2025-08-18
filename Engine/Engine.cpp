@@ -18,14 +18,21 @@ Engine::Engine() {
     m_ui.init(m_window.handle , std::to_string(GLSL_VERSION));
     m_ui.setOnShaderReloadCallback([this](size_t idx) {
         m_shaderPrograms[idx].reload();
-        m_renderer.initShaders(m_shaderPrograms[idx].getProgramId());
+        m_renderer.initSimpleShaders(m_shaderPrograms[idx].getProgramId());
     });
-    m_scene.AddCubeObj();
+    m_scene.AddSimpleCubeObj();
+    m_scene.AddPBRCubeObj();
     Shader simpleShader{std::string(SHADER_DIR) + "simple.vert", std::string(SHADER_DIR) + "simple.frag"};
+    Shader pbrShader{std::string(SHADER_DIR) + "pbr.vert", std::string(SHADER_DIR) + "pbr.frag"};
     simpleShader.init();
+    pbrShader.init();
     m_shaderPrograms.push_back(simpleShader);
-    m_renderer.initShaders(simpleShader.getProgramId());
-    m_renderer.setSimpleRenderables(m_scene.getRenderables());
+    m_shaderPrograms.push_back(pbrShader);
+    m_renderer.initSimpleShaders(simpleShader.getProgramId());
+    m_renderer.initPBRShaders(pbrShader.getProgramId());
+    m_renderer.setSimpleRenderables(m_scene.getSimplerenderables());
+    m_renderer.setPBRRenderables(m_scene.getPBRRenderables());
+
     fillUIStruct();
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -110,7 +117,8 @@ void Engine::initOpenGL() {
 void Engine::fillUIStruct() {
     m_uiStruct.mainFboSize = &m_mainFboSize;
     m_uiStruct.main_fbo_tex = (ImTextureID*)(intptr_t)m_renderer.getMainFrameColor();
-    m_uiStruct.renderables = m_scene.getRenderables();
+    m_uiStruct.simpleRenderables = m_scene.getSimplerenderables();
+    m_uiStruct.pbrRenderables = m_scene.getPBRRenderables();
     m_uiStruct.objNames = m_scene.getObjNames();
     m_uiStruct.shaders = &m_shaderPrograms;
     m_uiStruct.lights = &m_scene.getRenderInfo().lights;

@@ -9,6 +9,7 @@ Renderer::~Renderer() {}
 
 void Renderer::cleanup() {
     m_simpleRenderSystem.cleanup();
+    m_pbrRenderSystem.cleanup();
 
     glDeleteFramebuffers(1, &m_mainFrame.fbo);
     glDeleteTextures(1, &m_mainFrame.colorBuffer);
@@ -43,6 +44,7 @@ void Renderer::render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_simpleRenderSystem.render(m_renderInfo);
+    m_pbrRenderSystem.render(m_renderInfo);
 }
 
 FrameBuffer Renderer::createFrameBuffer(uint32_t width, uint32_t height) {

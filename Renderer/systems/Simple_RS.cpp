@@ -30,8 +30,12 @@ void Simple_RS::render(RenderInfo& renderInfo) {
     glUniform3fv(glGetUniformLocation(m_shaderProgram, "viewPos"), 1, glm::value_ptr(cameraPos));
     for (const auto& renderable : *m_renderableQueue) {
         glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(renderable.transform.m_matrix));
-        glBindBuffer(GL_UNIFORM_BUFFER, m_materialUBO);
+
+        glActiveTexture(GL_TEXTURE0 + renderable.material.albedoTexture.getTextureUnit());
+        glBindTexture(GL_TEXTURE_2D, renderable.material.albedoTexture.getTextureId());
         glUniform1i(glGetUniformLocation(m_shaderProgram, "tex0"), renderable.material.albedoTexture.getTextureUnit());
+
+        glBindBuffer(GL_UNIFORM_BUFFER, m_materialUBO);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(SimpleUBO), &renderable.material.ubo);
 
         glBindTexture(GL_TEXTURE_2D, renderable.material.albedoTexture.getTextureId());

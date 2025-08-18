@@ -5,24 +5,28 @@ Scene::Scene() {}
 Scene::~Scene() {}
 
 void Scene::cleanup() {
-    for (auto& renderable : m_renderables) {
+    for (auto& renderable : m_simpleRenderables) {
         renderable.meshBuffer.cleanup();
     }
-    m_renderables.clear();
+    for (auto& renderable : m_pbrRenderables) {
+        renderable.meshBuffer.cleanup();
+    }
+    m_simpleRenderables.clear();
     m_objects.clear();
     m_models.clear();
     m_objNames.clear();
     m_lights.clear();
 }
 
-void Scene::AddCubeObj() {
+void Scene::AddSimpleCubeObj() {
 
-    if (m_renderables.capacity() <= m_objCount) {
-        m_renderables.resize(m_objCount + 1);
+    if (m_simpleRenderables.capacity() <= m_simpleCount) {
+        m_simpleRenderables.resize(m_simpleCount + 1);
     }
 
     Obj obj;
     obj.idx = m_objCount++;
+    m_simpleCount++;
     m_objNames.push_back("Cube " + std::to_string(obj.idx + 1));
     obj.type = RenderType::Simple;
     m_objects.push_back(obj);
@@ -33,13 +37,13 @@ void Scene::AddCubeObj() {
     
     VAOConfig config = createConfig(obj.idx);
 
-    m_renderables[obj.idx].meshBuffer = Buffer::createMeshBuffer(
+    m_simpleRenderables[m_simpleCount - 1].meshBuffer = Buffer::createMeshBuffer(
         config,
         m_models[obj.idx].getVertices().data(),
         m_models[obj.idx].getIndices().data()
     );
 
-    m_renderables[obj.idx].material.ubo = {
+    m_simpleRenderables[m_simpleCount - 1].material.ubo = {
         .baseColor = {1.0f, 0.5f, 0.2f, 1.0f},
         .ambient = 0.1f,
         .diffuse = 0.8f,
@@ -50,9 +54,9 @@ void Scene::AddCubeObj() {
         .pad = {0.0f, 0.0f}
     };
 
-    m_renderables[obj.idx].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "wood_floor.jpg");
+    m_simpleRenderables[m_simpleCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "wood_floor.jpg");
 
-    m_renderables[obj.idx].transform = {
+    m_simpleRenderables[m_simpleCount - 1].transform = {
         .m_matrix = glm::mat4(1.0f),
         .pos = {0.0f, 0.0f, 0.0f},
         .rot = {0.0f, 0.0f, 0.0f},
@@ -65,6 +69,126 @@ void Scene::AddCubeObj() {
     mainLight.color = {1.0f, 1.0f, 1.0f};
     
     m_renderInfo.lights.push_back(mainLight);
+}
+
+void Scene::AddPBRCubeObj() {
+    if (m_pbrRenderables.capacity() <= m_pbrCount) {
+        m_pbrRenderables.resize(m_pbrCount + 1);
+    }
+
+    Obj obj;
+    obj.idx = m_objCount++;
+    m_pbrCount++;
+    m_objNames.push_back("PBR Cube " + std::to_string(obj.idx + 1));
+    obj.type = RenderType::PBR;
+    m_objects.push_back(obj);
+
+    Model cubeModel;
+    cubeModel.CubeModelUnique();
+    m_models.push_back(cubeModel);
+
+    std::vector<DummyVert> vertData;
+    for (const auto& vertex : m_models[obj.idx].getVertices()) {
+        DummyVert dummyVert;
+        dummyVert.pos = vertex.pos;
+        dummyVert.normal = vertex.normal;
+        dummyVert.texCoords = vertex.texCoords;
+        dummyVert.tangent = {0.0f, 0.0f, 0.0f};
+        dummyVert.bitangent = {0.0f, 0.0f, 0.0f};
+        vertData.push_back(dummyVert);
+    }
+
+    for (size_t i = 0; i < vertData.size(); i += 3) {
+        auto& v0 = vertData[i];
+        auto& v1 = vertData[i + 1];
+        auto& v2 = vertData[i + 2];
+
+        glm::vec3 edge1 = v1.pos - v0.pos;
+        glm::vec3 edge2 = v2.pos - v0.pos;
+
+        glm::vec2 deltaUV1 = v1.texCoords - v0.texCoords;
+        glm::vec2 deltaUV2 = v2.texCoords - v0.texCoords;
+
+        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+        glm::vec3 tangent, bitangent;
+
+        tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+
+        bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+        bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+        bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+
+        // Accumulate for each vertex
+        v0.tangent += tangent;
+        v1.tangent += tangent;
+        v2.tangent += tangent;
+
+        v0.bitangent += bitangent;
+        v1.bitangent += bitangent;
+        v2.bitangent += bitangent;
+    }
+
+    // Normalize all tangents/bitangents
+    for (auto& v : vertData) {
+        v.tangent = glm::normalize(v.tangent);
+        v.bitangent = glm::normalize(v.bitangent);
+    }
+
+    VAOConfig config = createPBRConfig(obj.idx);
+    m_pbrRenderables[m_pbrCount - 1].meshBuffer = Buffer::createMeshBuffer(
+        config,
+        vertData.data(),
+        nullptr
+    );
+
+    int flags = 0;
+    // set bit 1, bit 2, bit 3, and bit 5
+    flags |= HAS_ALBEDO_TEX | HAS_NORMAL_TEX | HAS_ROUGHNESS_TEX | HAS_AO_TEX;
+
+    m_pbrRenderables[m_pbrCount - 1].material.ubo = {
+        .baseColor = {1.0f, 0.5f, 0.2f, 1.0f},
+        .roughness = 0.5f,
+        .metallic = 0.5f,
+        .ao = 1.0f,
+        .flags = flags
+    };
+
+    m_pbrRenderables[m_pbrCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/albedo_map.jpg", 1);
+    m_pbrRenderables[m_pbrCount - 1].material.normalTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/normal_map.jpg", 2);
+    m_pbrRenderables[m_pbrCount - 1].material.roughnessTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/roughness_map.jpg", 3);
+    //m_pbrRenderables[m_pbrCount - 1].material.metallicTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/roughness_map.jpg", 4);
+    m_pbrRenderables[m_pbrCount - 1].material.aoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/ao_map.jpg", 5);
+
+    m_pbrRenderables[m_pbrCount - 1].transform = {
+        .m_matrix = glm::mat4(1.0f),
+        .pos = {-2.0f, 0.0f, 0.0f},
+        .rot = {0.0f, 0.0f, 0.0f},
+        .scale = {1.0f, 1.0f, 1.0f}
+    };
+
+    m_pbrRenderables[m_pbrCount - 1].transform.calcMatrix();
+
+}
+
+VAOConfig Scene::createPBRConfig(size_t idx) {
+    VAOConfig config;
+
+    config.attributes.push_back({0, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, pos)});
+    config.attributes.push_back({1, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, normal)});
+    config.attributes.push_back({2, 2, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, texCoords)});
+    config.attributes.push_back({3, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, tangent)});
+    config.attributes.push_back({4, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, bitangent)}); 
+
+    config.size_vertex = sizeof(DummyVert);
+    config.num_vertices = m_models[idx].getVertices().size();
+    config.index_count = UINT32_MAX;
+    config.draw_mode = GL_TRIANGLES;
+    config.usage = GL_DYNAMIC_DRAW;
+
+    return config;
 }
 
 

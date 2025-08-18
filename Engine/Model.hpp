@@ -22,6 +22,7 @@ public:
 
     void loadFromFile(const std::string& path);
     void CubeModel();
+    void CubeModelUnique();
 
     std::vector<Vertex>& getVertices() { return vertices; }
     std::vector<unsigned int>& getIndices() { return indices; }

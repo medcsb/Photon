@@ -4,6 +4,14 @@
 #include "Shader.hpp"
 #include "Model.hpp"
 
+struct DummyVert {
+    glm::vec3 pos;
+    glm::vec3 normal;
+    glm::vec2 texCoords;
+    glm::vec3 tangent;
+    glm::vec3 bitangent;
+};
+
 struct Obj {
     RenderType type;
     uint32_t idx;
@@ -12,11 +20,14 @@ struct Obj {
 class Scene {
 private:
 
-    uint32_t m_objCount = 0;
+    size_t m_objCount = 0;
+    size_t m_pbrCount = 0;
+    size_t m_simpleCount = 0;
 
     std::vector<Shader> m_shaderPrograms;
 
-    std::vector<SimpleRenderable> m_renderables;
+    std::vector<SimpleRenderable> m_simpleRenderables;
+    std::vector<PBR_Renderable> m_pbrRenderables;
     std::vector<Obj> m_objects;
     std::vector<Model> m_models;
     std::vector<std::string> m_objNames;
@@ -34,13 +45,16 @@ public:
 
     RenderInfo& getRenderInfo() { return m_renderInfo; }
     std::vector<std::string>* getObjNames() { return &m_objNames; }
-    std::vector<SimpleRenderable>* getRenderables() { return &m_renderables; }
+    std::vector<SimpleRenderable>* getSimplerenderables() { return &m_simpleRenderables; }
+    std::vector<PBR_Renderable>* getPBRRenderables() { return &m_pbrRenderables; }
 
-    void AddCubeObj();
+    void AddSimpleCubeObj();
+    void AddPBRCubeObj();
 
     void initExample();
 
 private:
     VAOConfig createConfig(size_t idx);
+    VAOConfig createPBRConfig(size_t idx);
 };
 
