@@ -7,6 +7,16 @@ Shader::Shader(const std::string& vertPath, const std::string& fragPath) :
 
 Shader::~Shader() {}
 
+void Shader::cleanup() {
+    glDeleteProgram(m_id);
+    m_id = 0;
+}
+
+void Shader::reload() {
+    glDeleteProgram(m_id);
+    init();
+}
+
 void Shader::init() {
     std::string vertCodeStr;
     std::string fragCodeStr;
@@ -19,7 +29,9 @@ void Shader::init() {
     createProg();
 
     glDeleteShader(m_vertId);
+    m_vertId = 0;
     glDeleteShader(m_fragId);
+    m_fragId = 0;
 }
 
 void Shader::use() {

@@ -14,6 +14,8 @@ private:
 
     uint32_t m_objCount = 0;
 
+    std::vector<Shader> m_shaderPrograms;
+
     std::vector<SimpleRenderable> m_renderables;
     std::vector<Obj> m_objects;
     std::vector<Model> m_models;
@@ -24,6 +26,8 @@ private:
 public:
     Scene();
     ~Scene();
+
+    void cleanup();
 
     void setViewMatrix(const glm::mat4& view) { m_renderInfo.viewMatrix = view; }
     void setProjectionMatrix(const glm::mat4& projection) { m_renderInfo.projectionMatrix = projection; }

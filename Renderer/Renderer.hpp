@@ -4,13 +4,16 @@
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 
-#include "RenderStructs.hpp"
-
-#include "Buffer.hpp"
 #include "systems/Simple_RS.hpp"
 #include "systems/PBR_RS.hpp"
 
 #include <vector>
+
+struct FrameBuffer {
+    GLuint fbo = 0;
+    GLuint colorBuffer = 0;
+    GLuint depthBuffer = 0;
+};
 
 class Renderer {
 private:
@@ -21,13 +24,11 @@ private:
     Simple_RS m_simpleRenderSystem;
     //PBR_RS m_pbrRenderSystem;
 
-    GLuint m_testVAO;
-    GLuint m_testVBO;
-    GLuint m_testShaderProgram;
-
 public:
     Renderer();
     ~Renderer();
+
+    void cleanup();
 
     void setSimpleRenderables(std::vector<SimpleRenderable>* renderables) {
         m_simpleRenderSystem.setRenderables(renderables);

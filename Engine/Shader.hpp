@@ -17,6 +17,9 @@ public:
 
     void init();
     void use();
+    void reload();
+
+    void cleanup();
 
     GLuint getProgramId() const { return m_id; }
 

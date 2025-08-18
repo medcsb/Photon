@@ -7,6 +7,17 @@ Renderer::Renderer() {}
 
 Renderer::~Renderer() {}
 
+void Renderer::cleanup() {
+    //m_simpleRenderSystem.cleanup();
+    //m_pbrRenderSystem.cleanup(); // Uncomment if PBR_RS is implemented
+
+    glDeleteFramebuffers(1, &m_mainFrame.fbo);
+    glDeleteTextures(1, &m_mainFrame.colorBuffer);
+    glDeleteRenderbuffers(1, &m_mainFrame.depthBuffer);
+
+
+}
+
 void Renderer::initFrameBuffer(uint32_t width, uint32_t height) {
     // Delete the previous framebuffer if it exists
     if (m_mainFrame.fbo != 0) {

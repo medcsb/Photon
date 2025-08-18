@@ -5,9 +5,13 @@
 Simple_RS::Simple_RS() {}
 Simple_RS::~Simple_RS() {}
 
+void Simple_RS::cleanup() {
+    delete m_renderableQueue;
+}
+
 void Simple_RS::render(RenderInfo& renderInfo) {
     glUseProgram(m_shaderProgram);
-    glm::vec3 cameraPos = glm::vec3(renderInfo.viewMatrix[3]);
+    glm::vec3 cameraPos = glm::vec3(glm::inverse(renderInfo.viewMatrix)[3]);
     glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(renderInfo.viewMatrix));
     glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(renderInfo.projectionMatrix));
     glUniform3fv(glGetUniformLocation(m_shaderProgram, "lightPos"), 1, glm::value_ptr(renderInfo.lights[0].pos));

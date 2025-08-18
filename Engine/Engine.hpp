@@ -32,6 +32,8 @@ private:
 
     UI_Struct m_uiStruct{};
 
+    std::vector<Shader> m_shaderPrograms;
+
     Camera m_camera;
     CameraController m_cameraController{m_camera};
 

@@ -4,6 +4,17 @@
 Scene::Scene() {}
 Scene::~Scene() {}
 
+void Scene::cleanup() {
+    for (auto& renderable : m_renderables) {
+        renderable.meshBuffer.cleanup();
+    }
+    m_renderables.clear();
+    m_objects.clear();
+    m_models.clear();
+    m_objNames.clear();
+    m_lights.clear();
+}
+
 void Scene::AddCubeObj() {
 
     if (m_renderables.capacity() <= m_objCount) {

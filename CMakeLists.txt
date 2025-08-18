@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 set(PROJECT_NAME "Photon")
 project(${PROJECT_NAME})
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # use debugs stuff like lasan
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb")

@@ -10,6 +10,21 @@
 
 // RS stands for Render System
 
+struct SimpleMaterial {
+    glm::vec3 baseColor;
+    float ambient;
+    float diffuse;
+    float specular;
+    float specStrength;
+    float specPower;
+};
+
+struct SimpleRenderable {
+    MeshBuffer meshBuffer;
+    SimpleMaterial material;
+    glm::mat4 transform;
+};
+
 class Simple_RS {
 private:
     GLuint m_shaderProgram;
@@ -17,6 +32,8 @@ private:
 public:
     Simple_RS();
     ~Simple_RS();
+
+    void cleanup();
 
     void init(GLuint shaderProgram) { m_shaderProgram = shaderProgram; }
 

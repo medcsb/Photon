@@ -6,6 +6,7 @@
 #include "imgui_impl_opengl3.h"
 
 #include "Photon/Renderer.h"
+#include "Shader.hpp"
 
 #include <string>
 
@@ -20,6 +21,8 @@ struct UI_Struct {
     ImTextureID* main_fbo_tex;
     std::vector<std::string>* objNames;
     std::vector<SimpleRenderable>* renderables;
+    std::vector<Shader>* shaders;
+    std::vector<Light>* lights;
     //Scene scene;
 };
 
@@ -37,6 +40,7 @@ private:
 
     bool m_onStartup = true;
     ImVec2 m_prevAvail;
+    std::function<void(size_t)> m_onShaderReload;
 
     size_t m_selectedObjIdx = UINT32_MAX;
 
@@ -54,6 +58,10 @@ public:
     void render(UI_Struct& ui_struct);
     void endRender();
 
+    void setOnShaderReloadCallback(std::function<void(size_t)> callback) { m_onShaderReload = std::move(callback); }
+
+    void cleanup();
+
 private:
     void beginDockSpace();
 
@@ -62,5 +70,6 @@ private:
     void renderEditPanel(UI_Struct& ui_struct);
     void info();
     void settings();
-    void sceneSettings(std::vector<std::string>* objNames);
+    void sceneSettings(std::vector<std::string>* objNames, std::vector<Light>* lights);
+    void shaders(std::vector<Shader>* shaders);
 };

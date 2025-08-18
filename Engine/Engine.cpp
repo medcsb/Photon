@@ -16,9 +16,14 @@ Engine::Engine() {
     initOpenGL();
     m_renderer.initFrameBuffer(m_mainFboSize.width, m_mainFboSize.height);
     m_ui.init(m_window.handle , std::to_string(GLSL_VERSION));
+    m_ui.setOnShaderReloadCallback([this](size_t idx) {
+        m_shaderPrograms[idx].reload();
+        m_renderer.initShaders(m_shaderPrograms[idx].getProgramId());
+    });
     m_scene.AddCubeObj();
     Shader simpleShader{std::string(SHADER_DIR) + "simple.vert", std::string(SHADER_DIR) + "simple.frag"};
     simpleShader.init();
+    m_shaderPrograms.push_back(simpleShader);
     m_renderer.initShaders(simpleShader.getProgramId());
     m_renderer.setSimpleRenderables(m_scene.getRenderables());
     fillUIStruct();
@@ -26,7 +31,17 @@ Engine::Engine() {
 }
 
 Engine::~Engine() {
+    m_scene.cleanup();
+    m_ui.cleanup();
 
+    for (auto& shader : m_shaderPrograms) {
+        shader.cleanup();
+    }
+    
+    m_renderer.cleanup();
+    
+    glfwDestroyWindow(m_window.handle);
+    glfwTerminate();
 }
 
 void Engine::run() {
@@ -93,6 +108,8 @@ void Engine::fillUIStruct() {
     m_uiStruct.main_fbo_tex = (ImTextureID*)(intptr_t)m_renderer.getMainFrameColor();
     m_uiStruct.renderables = m_scene.getRenderables();
     m_uiStruct.objNames = m_scene.getObjNames();
+    m_uiStruct.shaders = &m_shaderPrograms;
+    m_uiStruct.lights = &m_scene.getRenderInfo().lights;
 }
 
 void Engine::processInput(GLFWwindow* window, float deltaTime) {

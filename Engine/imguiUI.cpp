@@ -6,6 +6,16 @@ ImguiUI::ImguiUI() {}
 
 ImguiUI::~ImguiUI() {}
 
+void ImguiUI::cleanup() {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    
+    m_viewport = nullptr;
+    m_io = nullptr;
+    m_window = nullptr;
+}
+
 void ImguiUI::init(GLFWwindow* window, const std::string& glsl_version) {
     m_window = window;
     // glsl version is expected to be in the format "450"
@@ -85,7 +95,8 @@ void ImguiUI::renderInfoPanel(UI_Struct& ui_struct) {
     ImGui::Begin("Info");
     info();
     settings();
-    sceneSettings(ui_struct.objNames);
+    sceneSettings(ui_struct.objNames, ui_struct.lights);
+    shaders(ui_struct.shaders);
     ImGui::End();
 }
 
@@ -131,11 +142,32 @@ void ImguiUI::settings() {
     }
 }
 
-void ImguiUI::sceneSettings(std::vector<std::string>* objNames) {
+void ImguiUI::sceneSettings(std::vector<std::string>* objNames, std::vector<Light>* lights) {
     if (ImGui::CollapsingHeader("Scene Settings")) {
         if (ImGui::CollapsingHeader("Objects")) {
             for (size_t i = 0; i < objNames->size(); ++i) {
                 if (ImGui::Button(objNames->at(i).c_str())) m_selectedObjIdx = i;
+            }
+        }
+
+        if (ImGui::CollapsingHeader("Lights")) {
+            for (size_t i = 0; i < lights->size(); ++i) {
+                std::string lightName = "Light " + std::to_string(i);
+                if (ImGui::CollapsingHeader(lightName.c_str())) {
+                    ImGui::ColorEdit3("Color", &lights->at(i).color[0]);
+                    ImGui::SliderFloat3("Position", &lights->at(i).pos[0], -5.0f, 5.0f);
+                }
+            }
+        }
+    }
+}
+
+void ImguiUI::shaders(std::vector<Shader>* shaders) {
+    if (ImGui::CollapsingHeader("Shaders")) {
+        for (size_t i = 0; i < shaders->size(); ++i) {
+            std::string str = "Reload " + std::to_string(shaders->at(i).getProgramId());
+            if (ImGui::Button(str.c_str())) {
+                m_onShaderReload(i);
             }
         }
     }
