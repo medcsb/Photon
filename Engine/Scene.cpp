@@ -54,7 +54,7 @@ void Scene::AddSimpleCubeObj() {
         .pad = {0.0f, 0.0f}
     };
 
-    m_simpleRenderables[m_simpleCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "wood_floor.jpg");
+    m_simpleRenderables[m_simpleCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/albedo_map.jpg", 0);
 
     m_simpleRenderables[m_simpleCount - 1].transform = {
         .m_matrix = glm::mat4(1.0f),
@@ -146,7 +146,9 @@ void Scene::AddPBRCubeObj() {
 
     int flags = 0;
     // set bit 1, bit 2, bit 3, and bit 5
-    flags |= HAS_ALBEDO_TEX | HAS_NORMAL_TEX | HAS_ROUGHNESS_TEX | HAS_AO_TEX;
+    flags |= HAS_ALBEDO_TEX | HAS_NORMAL_TEX | HAS_ROUGHNESS_TEX;
+    //flags |= HAS_ALBEDO_TEX | HAS_NORMAL_TEX | HAS_ROUGHNESS_TEX | HAS_AO_TEX;
+    //flags |= HAS_ALBEDO_TEX | HAS_NORMAL_TEX | HAS_ROUGHNESS_TEX | HAS_METALLIC_TEX;
 
     m_pbrRenderables[m_pbrCount - 1].material.ubo = {
         .baseColor = {1.0f, 0.5f, 0.2f, 1.0f},
@@ -156,11 +158,19 @@ void Scene::AddPBRCubeObj() {
         .flags = flags
     };
 
-    m_pbrRenderables[m_pbrCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/albedo_map.jpg", 1);
-    m_pbrRenderables[m_pbrCount - 1].material.normalTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/normal_map.jpg", 2);
-    m_pbrRenderables[m_pbrCount - 1].material.roughnessTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/roughness_map.jpg", 3);
-    //m_pbrRenderables[m_pbrCount - 1].material.metallicTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/roughness_map.jpg", 4);
-    m_pbrRenderables[m_pbrCount - 1].material.aoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/ao_map.jpg", 5);
+    //m_pbrRenderables[m_pbrCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/albedo_map.jpg", 1);
+    //m_pbrRenderables[m_pbrCount - 1].material.normalTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/normal_map.jpg", 2);
+    //m_pbrRenderables[m_pbrCount - 1].material.roughnessTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/roughness_map.jpg", 3);
+    //m_pbrRenderables[m_pbrCount - 1].material.aoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/ao_map.jpg", 5);
+
+    //m_pbrRenderables[m_pbrCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/albedo_map.jpg", 1);
+    //m_pbrRenderables[m_pbrCount - 1].material.normalTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/normal_map.jpg", 2);
+    //m_pbrRenderables[m_pbrCount - 1].material.roughnessTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/roughness_map.jpg", 3);
+    //m_pbrRenderables[m_pbrCount - 1].material.metallicTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/metal_map.jpg", 4);
+
+    m_pbrRenderables[m_pbrCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/albedo_map.jpg", 1);
+    m_pbrRenderables[m_pbrCount - 1].material.normalTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/normal_map.jpg", 2);
+    m_pbrRenderables[m_pbrCount - 1].material.roughnessTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/roughness_map.jpg", 3);
 
     m_pbrRenderables[m_pbrCount - 1].transform = {
         .m_matrix = glm::mat4(1.0f),

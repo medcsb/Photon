@@ -7,6 +7,7 @@
 
 #include "Photon/Renderer.h"
 #include "Shader.hpp"
+#include "Scene.hpp"
 
 #include <string>
 
@@ -20,6 +21,7 @@ struct UI_Struct {
     FboSize* mainFboSize;
     ImTextureID* main_fbo_tex;
     std::vector<std::string>* objNames;
+    std::vector<Obj>* objects;
     std::vector<SimpleRenderable>* simpleRenderables;
     std::vector<PBR_Renderable>* pbrRenderables;
     std::vector<Shader>* shaders;

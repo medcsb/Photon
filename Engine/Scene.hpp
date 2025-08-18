@@ -47,6 +47,7 @@ public:
     std::vector<std::string>* getObjNames() { return &m_objNames; }
     std::vector<SimpleRenderable>* getSimplerenderables() { return &m_simpleRenderables; }
     std::vector<PBR_Renderable>* getPBRRenderables() { return &m_pbrRenderables; }
+    std::vector<Obj>* getObjects() { return &m_objects; }
 
     void AddSimpleCubeObj();
     void AddPBRCubeObj();
