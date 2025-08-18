@@ -6,7 +6,18 @@ Simple_RS::Simple_RS() {}
 Simple_RS::~Simple_RS() {}
 
 void Simple_RS::cleanup() {
-    delete m_renderableQueue;
+    glDeleteBuffers(1, &m_materialUBO);
+    m_materialUBO = 0;
+}
+
+void Simple_RS::init(GLuint shaderProgram) {
+    m_shaderProgram = shaderProgram;
+
+    glGenBuffers(1, &m_materialUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_materialUBO);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(SimpleUBO), nullptr, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_materialUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Simple_RS::render(RenderInfo& renderInfo) {
@@ -18,13 +29,12 @@ void Simple_RS::render(RenderInfo& renderInfo) {
     glUniform3fv(glGetUniformLocation(m_shaderProgram, "lightColor"), 1, glm::value_ptr(renderInfo.lights[0].color));
     glUniform3fv(glGetUniformLocation(m_shaderProgram, "viewPos"), 1, glm::value_ptr(cameraPos));
     for (const auto& renderable : *m_renderableQueue) {
-        glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(renderable.transform));
-        glUniform3fv(glGetUniformLocation(m_shaderProgram, "baseColor"), 1, glm::value_ptr(renderable.material.baseColor));
-        glUniform1f(glGetUniformLocation(m_shaderProgram, "ambient"), renderable.material.ambient);
-        glUniform1f(glGetUniformLocation(m_shaderProgram, "diffuse"), renderable.material.diffuse);
-        glUniform1f(glGetUniformLocation(m_shaderProgram, "specular"), renderable.material.specular);
-        glUniform1f(glGetUniformLocation(m_shaderProgram, "specStrength"), renderable.material.specStrength);
-        glUniform1f(glGetUniformLocation(m_shaderProgram, "specPower"), renderable.material.specPower);
+        glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(renderable.transform.m_matrix));
+        glBindBuffer(GL_UNIFORM_BUFFER, m_materialUBO);
+        glUniform1i(glGetUniformLocation(m_shaderProgram, "tex0"), renderable.material.albedoTexture.getTextureUnit());
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(SimpleUBO), &renderable.material.ubo);
+
+        glBindTexture(GL_TEXTURE_2D, renderable.material.albedoTexture.getTextureId());
         
         renderable.meshBuffer.bind();
         renderable.meshBuffer.draw();

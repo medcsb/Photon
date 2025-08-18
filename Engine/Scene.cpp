@@ -39,16 +39,25 @@ void Scene::AddCubeObj() {
         m_models[obj.idx].getIndices().data()
     );
 
-    m_renderables[obj.idx].material = {
-        .baseColor = {1.0f, 0.5f, 0.2f},
+    m_renderables[obj.idx].material.ubo = {
+        .baseColor = {1.0f, 0.5f, 0.2f, 1.0f},
         .ambient = 0.1f,
         .diffuse = 0.8f,
         .specular = 0.5f,
         .specStrength = 0.5f,
-        .specPower = 32.0f
+        .specPower = 32.0f,
+        .texBlend = 1.0f,
+        .pad = {0.0f, 0.0f}
     };
 
-    m_renderables[obj.idx].transform = glm::mat4(1.0f);
+    m_renderables[obj.idx].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "wood_floor.jpg");
+
+    m_renderables[obj.idx].transform = {
+        .m_matrix = glm::mat4(1.0f),
+        .pos = {0.0f, 0.0f, 0.0f},
+        .rot = {0.0f, 0.0f, 0.0f},
+        .scale = {1.0f, 1.0f, 1.0f}
+    };
 
     Light mainLight;
     

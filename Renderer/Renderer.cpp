@@ -8,14 +8,11 @@ Renderer::Renderer() {}
 Renderer::~Renderer() {}
 
 void Renderer::cleanup() {
-    //m_simpleRenderSystem.cleanup();
-    //m_pbrRenderSystem.cleanup(); // Uncomment if PBR_RS is implemented
+    m_simpleRenderSystem.cleanup();
 
     glDeleteFramebuffers(1, &m_mainFrame.fbo);
     glDeleteTextures(1, &m_mainFrame.colorBuffer);
     glDeleteRenderbuffers(1, &m_mainFrame.depthBuffer);
-
-
 }
 
 void Renderer::initFrameBuffer(uint32_t width, uint32_t height) {

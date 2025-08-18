@@ -9,6 +9,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb")
 set(CMAKE_BUILD_TYPE Debug)
 
 add_compile_definitions(SHADER_DIR="${CMAKE_SOURCE_DIR}/shaders/")
+add_compile_definitions(TEXTURE_DIR="${CMAKE_SOURCE_DIR}/assets/textures/")
 
 # Add your include and src folders
 include_directories(include)
