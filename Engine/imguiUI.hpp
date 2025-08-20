@@ -20,8 +20,9 @@ struct FboSize {
 struct UI_Struct {
     FboSize* mainFboSize;
     ImTextureID* main_fbo_tex;
-    std::vector<std::string>* objNames;
+    Scene* scene;
     std::vector<Obj>* objects;
+    std::vector<std::string>* objNames;
     std::vector<SimpleRenderable>* simpleRenderables;
     std::vector<PBR_Renderable>* pbrRenderables;
     std::vector<Shader>* shaders;
@@ -73,6 +74,10 @@ private:
     void renderEditPanel(UI_Struct& ui_struct);
     void info();
     void settings();
-    void sceneSettings(std::vector<std::string>* objNames, std::vector<Light>* lights);
+    void sceneSettings(Scene* scene, std::vector<Light>* lights);
     void shaders(std::vector<Shader>* shaders);
+
+    void transformEdit(Transform& transform);
+    void simpleMaterialEdit(SimpleRenderable& renderable);
+    void pbrMaterialEdit(PBR_Renderable& renderable);
 };

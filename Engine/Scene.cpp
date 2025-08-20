@@ -26,7 +26,7 @@ void Scene::AddSimpleCubeObj() {
 
     Obj obj;
     obj.idx = m_objCount++;
-    m_simpleCount++;
+    obj.simpleIdx = m_simpleCount++;
     m_objNames.push_back("Cube " + std::to_string(obj.idx + 1));
     obj.type = RenderType::Simple;
     m_objects.push_back(obj);
@@ -37,13 +37,13 @@ void Scene::AddSimpleCubeObj() {
     
     VAOConfig config = createConfig(obj.idx);
 
-    m_simpleRenderables[m_simpleCount - 1].meshBuffer = Buffer::createMeshBuffer(
+    m_simpleRenderables[obj.simpleIdx].meshBuffer = Buffer::createMeshBuffer(
         config,
         m_models[obj.idx].getVertices().data(),
         m_models[obj.idx].getIndices().data()
     );
 
-    m_simpleRenderables[m_simpleCount - 1].material.ubo = {
+    m_simpleRenderables[obj.simpleIdx].material.ubo = {
         .baseColor = {1.0f, 0.5f, 0.2f, 1.0f},
         .ambient = 0.1f,
         .diffuse = 0.8f,
@@ -54,9 +54,9 @@ void Scene::AddSimpleCubeObj() {
         .pad = {0.0f, 0.0f}
     };
 
-    m_simpleRenderables[m_simpleCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/albedo_map.jpg", 0);
+    m_simpleRenderables[obj.simpleIdx].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/albedo_map.jpg", 0);
 
-    m_simpleRenderables[m_simpleCount - 1].transform = {
+    m_simpleRenderables[obj.simpleIdx].transform = {
         .m_matrix = glm::mat4(1.0f),
         .pos = {0.0f, 0.0f, 0.0f},
         .rot = {0.0f, 0.0f, 0.0f},
@@ -78,7 +78,7 @@ void Scene::AddPBRCubeObj() {
 
     Obj obj;
     obj.idx = m_objCount++;
-    m_pbrCount++;
+    obj.pbrIdx = m_pbrCount++;
     m_objNames.push_back("PBR Cube " + std::to_string(obj.idx + 1));
     obj.type = RenderType::PBR;
     m_objects.push_back(obj);
@@ -87,8 +87,92 @@ void Scene::AddPBRCubeObj() {
     cubeModel.CubeModelUnique();
     m_models.push_back(cubeModel);
 
+    std::vector<DummyVert> vertData = getDummyVerts(m_models[obj.idx].getVertices());
+
+    VAOConfig config = createPBRConfig(obj.idx);
+    m_pbrRenderables[obj.pbrIdx].meshBuffer = Buffer::createMeshBuffer(
+        config,
+        vertData.data(),
+        nullptr
+    );
+
+    int flags = 0;
+    // set bit 1, bit 2, bit 3, and bit 5
+    flags |= HAS_ALBEDO_TEX | HAS_NORMAL_TEX | HAS_ROUGHNESS_TEX;
+    //flags |= HAS_ALBEDO_TEX | HAS_NORMAL_TEX | HAS_ROUGHNESS_TEX | HAS_AO_TEX;
+    //flags |= HAS_ALBEDO_TEX | HAS_NORMAL_TEX | HAS_ROUGHNESS_TEX | HAS_METALLIC_TEX;
+
+    m_pbrRenderables[obj.pbrIdx].material.ubo = {
+        .baseColor = {1.0f, 0.5f, 0.2f, 1.0f},
+        .roughness = 0.5f,
+        .metallic = 0.5f,
+        .ao = 1.0f,
+        .flags = flags
+    };
+
+    //m_pbrRenderables[obj.pbrIdx].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/albedo_map.jpg", 1);
+    //m_pbrRenderables[obj.pbrIdx].material.normalTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/normal_map.jpg", 2);
+    //m_pbrRenderables[obj.pbrIdx].material.roughnessTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/roughness_map.jpg", 3);
+    //m_pbrRenderables[obj.pbrIdx].material.aoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/ao_map.jpg", 5);
+
+    //m_pbrRenderables[obj.pbrIdx].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/albedo_map.jpg", 1);
+    //m_pbrRenderables[obj.pbrIdx].material.normalTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/normal_map.jpg", 2);
+    //m_pbrRenderables[obj.pbrIdx].material.roughnessTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/roughness_map.jpg", 3);
+    //m_pbrRenderables[obj.pbrIdx].material.metallicTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/metal_map.jpg", 4);
+
+    m_pbrRenderables[obj.pbrIdx].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/albedo_map.jpg", 1);
+    m_pbrRenderables[obj.pbrIdx].material.normalTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/normal_map.jpg", 2);
+    m_pbrRenderables[obj.pbrIdx].material.roughnessTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/roughness_map.jpg", 3);
+
+    m_pbrRenderables[obj.pbrIdx].transform = {
+        .m_matrix = glm::mat4(1.0f),
+        .pos = {-2.0f, 0.0f, 0.0f},
+        .rot = {0.0f, 0.0f, 0.0f},
+        .scale = {1.0f, 1.0f, 1.0f}
+    };
+
+    m_pbrRenderables[obj.pbrIdx].transform.calcMatrix();
+
+}
+
+VAOConfig Scene::createPBRConfig(size_t idx) {
+    VAOConfig config;
+
+    config.attributes.push_back({0, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, pos)});
+    config.attributes.push_back({1, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, normal)});
+    config.attributes.push_back({2, 2, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, texCoords)});
+    config.attributes.push_back({3, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, tangent)});
+    config.attributes.push_back({4, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, bitangent)}); 
+
+    config.size_vertex = sizeof(DummyVert);
+    config.num_vertices = m_models[idx].getVertices().size();
+    config.index_count = UINT32_MAX;
+    config.draw_mode = GL_TRIANGLES;
+    config.usage = GL_DYNAMIC_DRAW;
+
+    return config;
+}
+
+
+VAOConfig Scene::createConfig(size_t idx) {
+    VAOConfig config;
+    
+    config.attributes.push_back({0, 3, GL_FLOAT, false, sizeof(Vertex), offsetof(Vertex, pos)});
+    config.attributes.push_back({1, 3, GL_FLOAT, false, sizeof(Vertex), offsetof(Vertex, normal)});
+    config.attributes.push_back({2, 2, GL_FLOAT, false, sizeof(Vertex), offsetof(Vertex, texCoords)});
+
+    config.size_vertex = sizeof(Vertex);
+    config.num_vertices = m_models[idx].getVertices().size();
+    config.index_count = m_models[idx].getIndices().size();
+    config.draw_mode = GL_TRIANGLES;
+    config.usage = GL_DYNAMIC_DRAW;
+
+    return config;
+}
+
+std::vector<DummyVert> Scene::getDummyVerts(std::vector<Vertex>& vertices) {
     std::vector<DummyVert> vertData;
-    for (const auto& vertex : m_models[obj.idx].getVertices()) {
+    for (const auto& vertex : vertices) {
         DummyVert dummyVert;
         dummyVert.pos = vertex.pos;
         dummyVert.normal = vertex.normal;
@@ -137,83 +221,5 @@ void Scene::AddPBRCubeObj() {
         v.bitangent = glm::normalize(v.bitangent);
     }
 
-    VAOConfig config = createPBRConfig(obj.idx);
-    m_pbrRenderables[m_pbrCount - 1].meshBuffer = Buffer::createMeshBuffer(
-        config,
-        vertData.data(),
-        nullptr
-    );
-
-    int flags = 0;
-    // set bit 1, bit 2, bit 3, and bit 5
-    flags |= HAS_ALBEDO_TEX | HAS_NORMAL_TEX | HAS_ROUGHNESS_TEX;
-    //flags |= HAS_ALBEDO_TEX | HAS_NORMAL_TEX | HAS_ROUGHNESS_TEX | HAS_AO_TEX;
-    //flags |= HAS_ALBEDO_TEX | HAS_NORMAL_TEX | HAS_ROUGHNESS_TEX | HAS_METALLIC_TEX;
-
-    m_pbrRenderables[m_pbrCount - 1].material.ubo = {
-        .baseColor = {1.0f, 0.5f, 0.2f, 1.0f},
-        .roughness = 0.5f,
-        .metallic = 0.5f,
-        .ao = 1.0f,
-        .flags = flags
-    };
-
-    //m_pbrRenderables[m_pbrCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/albedo_map.jpg", 1);
-    //m_pbrRenderables[m_pbrCount - 1].material.normalTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/normal_map.jpg", 2);
-    //m_pbrRenderables[m_pbrCount - 1].material.roughnessTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/roughness_map.jpg", 3);
-    //m_pbrRenderables[m_pbrCount - 1].material.aoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_wood/ao_map.jpg", 5);
-
-    //m_pbrRenderables[m_pbrCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/albedo_map.jpg", 1);
-    //m_pbrRenderables[m_pbrCount - 1].material.normalTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/normal_map.jpg", 2);
-    //m_pbrRenderables[m_pbrCount - 1].material.roughnessTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/roughness_map.jpg", 3);
-    //m_pbrRenderables[m_pbrCount - 1].material.metallicTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_metal/metal_map.jpg", 4);
-
-    m_pbrRenderables[m_pbrCount - 1].material.albedoTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/albedo_map.jpg", 1);
-    m_pbrRenderables[m_pbrCount - 1].material.normalTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/normal_map.jpg", 2);
-    m_pbrRenderables[m_pbrCount - 1].material.roughnessTexture.loadTexture(std::string(TEXTURE_DIR) + "pbr_tiles/roughness_map.jpg", 3);
-
-    m_pbrRenderables[m_pbrCount - 1].transform = {
-        .m_matrix = glm::mat4(1.0f),
-        .pos = {-2.0f, 0.0f, 0.0f},
-        .rot = {0.0f, 0.0f, 0.0f},
-        .scale = {1.0f, 1.0f, 1.0f}
-    };
-
-    m_pbrRenderables[m_pbrCount - 1].transform.calcMatrix();
-
-}
-
-VAOConfig Scene::createPBRConfig(size_t idx) {
-    VAOConfig config;
-
-    config.attributes.push_back({0, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, pos)});
-    config.attributes.push_back({1, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, normal)});
-    config.attributes.push_back({2, 2, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, texCoords)});
-    config.attributes.push_back({3, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, tangent)});
-    config.attributes.push_back({4, 3, GL_FLOAT, false, sizeof(DummyVert), offsetof(DummyVert, bitangent)}); 
-
-    config.size_vertex = sizeof(DummyVert);
-    config.num_vertices = m_models[idx].getVertices().size();
-    config.index_count = UINT32_MAX;
-    config.draw_mode = GL_TRIANGLES;
-    config.usage = GL_DYNAMIC_DRAW;
-
-    return config;
-}
-
-
-VAOConfig Scene::createConfig(size_t idx) {
-    VAOConfig config;
-    
-    config.attributes.push_back({0, 3, GL_FLOAT, false, sizeof(Vertex), offsetof(Vertex, pos)});
-    config.attributes.push_back({1, 3, GL_FLOAT, false, sizeof(Vertex), offsetof(Vertex, normal)});
-    config.attributes.push_back({2, 2, GL_FLOAT, false, sizeof(Vertex), offsetof(Vertex, texCoords)});
-
-    config.size_vertex = sizeof(Vertex);
-    config.num_vertices = m_models[idx].getVertices().size();
-    config.index_count = m_models[idx].getIndices().size();
-    config.draw_mode = GL_TRIANGLES;
-    config.usage = GL_DYNAMIC_DRAW;
-
-    return config;
+    return vertData;
 }

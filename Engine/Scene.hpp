@@ -14,7 +14,9 @@ struct DummyVert {
 
 struct Obj {
     RenderType type;
-    uint32_t idx;
+    size_t idx;
+    size_t simpleIdx = UINT32_MAX;
+    size_t pbrIdx = UINT32_MAX;
 };
 
 class Scene {
@@ -49,13 +51,16 @@ public:
     std::vector<PBR_Renderable>* getPBRRenderables() { return &m_pbrRenderables; }
     std::vector<Obj>* getObjects() { return &m_objects; }
 
+    
     void AddSimpleCubeObj();
     void AddPBRCubeObj();
-
+    
     void initExample();
-
-private:
+    
+    private:
     VAOConfig createConfig(size_t idx);
     VAOConfig createPBRConfig(size_t idx);
+    
+    std::vector<DummyVert> getDummyVerts(std::vector<Vertex>& vertices);
 };
 

@@ -95,7 +95,7 @@ void ImguiUI::renderInfoPanel(UI_Struct& ui_struct) {
     ImGui::Begin("Info");
     info();
     settings();
-    sceneSettings(ui_struct.objNames, ui_struct.lights);
+    sceneSettings(ui_struct.scene, ui_struct.lights);
     shaders(ui_struct.shaders);
     ImGui::End();
 }
@@ -108,41 +108,13 @@ void ImguiUI::renderEditPanel(UI_Struct& ui_struct) {
         return;
     }
     if (ui_struct.objects->at(m_selectedObjIdx).type == RenderType::PBR) {
-        if (ImGui::SliderFloat3("Pos", glm::value_ptr(ui_struct.pbrRenderables->at(m_selectedObjIdx-1).transform.pos), -5.0f, 5.0f)) {
-            ui_struct.pbrRenderables->at(m_selectedObjIdx-1).transform.calcMatrix();
-        }
-        if (ImGui::SliderFloat3("Rot", glm::value_ptr(ui_struct.pbrRenderables->at(m_selectedObjIdx-1).transform.rot), -180.0f, 180.0f)) {
-            ui_struct.pbrRenderables->at(m_selectedObjIdx-1).transform.calcMatrix();
-        }
-        if (ImGui::SliderFloat3("Scale", glm::value_ptr(ui_struct.pbrRenderables->at(m_selectedObjIdx-1).transform.scale), 0.1f, 5.0f)) {
-            ui_struct.pbrRenderables->at(m_selectedObjIdx-1).transform.calcMatrix();
-        }
+        size_t pbrIdx = ui_struct.objects->at(m_selectedObjIdx).pbrIdx;
+        transformEdit(ui_struct.pbrRenderables->at(pbrIdx).transform);
+        pbrMaterialEdit(ui_struct.pbrRenderables->at(pbrIdx));
     } else if (ui_struct.objects->at(m_selectedObjIdx).type == RenderType::Simple) {
-        if(ImGui::SliderFloat3("Pos", glm::value_ptr(ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.pos), -5.0f, 5.0f)) {
-            ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.calcMatrix();
-        }
-        if(ImGui::SliderFloat3("Rot", glm::value_ptr(ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.rot), -180.0f, 180.0f)) {
-            ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.calcMatrix();
-        }
-        if(ImGui::SliderFloat3("Scale", glm::value_ptr(ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.scale), 0.1f, 5.0f)) {
-            ui_struct.simpleRenderables->at(m_selectedObjIdx).transform.calcMatrix();
-        }
-    }
-    if (ImGui::CollapsingHeader("Material")) {
-        if (ui_struct.objects->at(m_selectedObjIdx).type == RenderType::PBR) {
-            ImGui::ColorPicker4("Base Color", &ui_struct.pbrRenderables->at(m_selectedObjIdx-1).material.ubo.baseColor[0]);
-            ImGui::SliderFloat("Metallic", &ui_struct.pbrRenderables->at(m_selectedObjIdx-1).material.ubo.metallic, 0.0f, 1.0f);
-            ImGui::SliderFloat("Roughness", &ui_struct.pbrRenderables->at(m_selectedObjIdx-1).material.ubo.roughness, 0.0f, 1.0f);
-            ImGui::SliderFloat("Ambient Occlusion", &ui_struct.pbrRenderables->at(m_selectedObjIdx-1).material.ubo.ao, 0.0f, 1.0f);
-        } else if (ui_struct.objects->at(m_selectedObjIdx).type == RenderType::Simple) {
-            ImGui::ColorPicker4("Color", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.baseColor[0]);
-            ImGui::SliderFloat("Ambient", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.ambient, 0.0f, 1.0f);
-            ImGui::SliderFloat("Diffuse", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.diffuse, 0.0f, 1.0f);
-            ImGui::SliderFloat("Specular", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.specular, 0.0f, 1.0f);
-            ImGui::SliderFloat("Specular Strength", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.specStrength, 0.0f, 1.0f);
-            ImGui::SliderFloat("Specular Power", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.specPower, 1.0f, 128.0f);
-            ImGui::SliderFloat("Texture Blend", &ui_struct.simpleRenderables->at(m_selectedObjIdx).material.ubo.texBlend, 0.0f, 1.0f);
-        }
+        size_t simpleIdx = ui_struct.objects->at(m_selectedObjIdx).simpleIdx;
+        transformEdit(ui_struct.simpleRenderables->at(simpleIdx).transform);
+        simpleMaterialEdit(ui_struct.simpleRenderables->at(simpleIdx));
     }
     ImGui::End();
 }
@@ -170,22 +142,33 @@ void ImguiUI::settings() {
     }
 }
 
-void ImguiUI::sceneSettings(std::vector<std::string>* objNames, std::vector<Light>* lights) {
+void ImguiUI::sceneSettings(Scene* scene, std::vector<Light>* lights) {
     if (ImGui::CollapsingHeader("Scene Settings")) {
-        if (ImGui::CollapsingHeader("Objects")) {
-            for (size_t i = 0; i < objNames->size(); ++i) {
-                if (ImGui::Button(objNames->at(i).c_str())) m_selectedObjIdx = i;
-            }
-        }
-
-        if (ImGui::CollapsingHeader("Lights")) {
-            for (size_t i = 0; i < lights->size(); ++i) {
-                std::string lightName = "Light " + std::to_string(i);
-                if (ImGui::CollapsingHeader(lightName.c_str())) {
-                    ImGui::ColorEdit3("Color", &lights->at(i).color[0]);
-                    ImGui::SliderFloat3("Position", &lights->at(i).pos[0], -5.0f, 5.0f);
+        if (ImGui::TreeNode("Objects")) {
+            for (size_t i = 0; i < scene->getObjects()->size(); ++i) {
+                if (ImGui::Selectable(scene->getObjNames()->at(i).c_str(), m_selectedObjIdx == scene->getObjects()->at(i).idx)) {
+                    m_selectedObjIdx = scene->getObjects()->at(i).idx;
+                }
+                if (ImGui::TreeNode(("Details##" + std::to_string(i)).c_str())) {
+                    ImGui::Text("Object Index: %zu", scene->getObjects()->at(i).idx);
+                    ImGui::TreePop();
                 }
             }
+            if (ImGui::Button("Add Simple Cube")) scene->AddSimpleCubeObj();
+            if (ImGui::Button("Add PBR Cube")) scene->AddPBRCubeObj();
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNode("Lights")) {
+            for (size_t i = 0; i < lights->size(); ++i) {
+                std::string lightName = "Light " + std::to_string(i);
+                if (ImGui::TreeNode(lightName.c_str())) {
+                    ImGui::ColorEdit3("Color", &lights->at(i).color[0]);
+                    ImGui::SliderFloat3("Position", &lights->at(i).pos[0], -5.0f, 5.0f);
+                    ImGui::TreePop();
+                }
+            }
+            ImGui::TreePop();
         }
     }
 }
@@ -218,4 +201,33 @@ void ImguiUI::beginDockSpace() {
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), m_dockspaceFlags);
 
     ImGui::End();
+}
+
+void ImguiUI::transformEdit(Transform& transform) {
+    if (ImGui::SliderFloat3("Position", glm::value_ptr(transform.pos), -5.0f, 5.0f)) {
+        transform.calcMatrix();
+    }
+    if (ImGui::SliderFloat3("Rotation", glm::value_ptr(transform.rot), -180.0f, 180.0f)) {
+        transform.calcMatrix();
+    }
+    if (ImGui::SliderFloat3("Scale", glm::value_ptr(transform.scale), 0.1f, 5.0f)) {
+        transform.calcMatrix();
+    }
+}
+
+void ImguiUI::simpleMaterialEdit(SimpleRenderable& renderable) {
+    ImGui::ColorPicker4("Base Color", &renderable.material.ubo.baseColor[0]);
+    ImGui::SliderFloat("Ambient", &renderable.material.ubo.ambient, 0.0f, 1.0f);
+    ImGui::SliderFloat("Diffuse", &renderable.material.ubo.diffuse, 0.0f, 1.0f);
+    ImGui::SliderFloat("Specular", &renderable.material.ubo.specular, 0.0f, 1.0f);
+    ImGui::SliderFloat("Specular Strength", &renderable.material.ubo.specStrength, 0.0f, 1.0f);
+    ImGui::SliderFloat("Specular Power", &renderable.material.ubo.specPower, 1.0f, 128.0f);
+    ImGui::SliderFloat("Texture Blend", &renderable.material.ubo.texBlend, 0.0f, 1.0f);
+}
+
+void ImguiUI::pbrMaterialEdit(PBR_Renderable& renderable) {
+    ImGui::ColorPicker4("Base Color", &renderable.material.ubo.baseColor[0]);
+    ImGui::SliderFloat("Metallic", &renderable.material.ubo.metallic, 0.0f, 1.0f);
+    ImGui::SliderFloat("Roughness", &renderable.material.ubo.roughness, 0.0f, 1.0f);
+    ImGui::SliderFloat("Ambient Occlusion", &renderable.material.ubo.ao, 0.0f, 1.0f);
 }

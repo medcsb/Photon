@@ -117,6 +117,7 @@ void Engine::initOpenGL() {
 void Engine::fillUIStruct() {
     m_uiStruct.mainFboSize = &m_mainFboSize;
     m_uiStruct.main_fbo_tex = (ImTextureID*)(intptr_t)m_renderer.getMainFrameColor();
+    m_uiStruct.scene = &m_scene;
     m_uiStruct.simpleRenderables = m_scene.getSimplerenderables();
     m_uiStruct.pbrRenderables = m_scene.getPBRRenderables();
     m_uiStruct.objNames = m_scene.getObjNames();
